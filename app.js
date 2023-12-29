@@ -184,6 +184,7 @@ let deleteAll = document.getElementById("deleteAll");
 let todoDisplay = document.querySelector("#todoDisplay");
 let list_item ;
 let inputValue;
+let number = 0
 let todoAdd = (e) => {
     e.preventDefault();
    inputValue = input.value;
@@ -191,10 +192,12 @@ if (!inputValue.trim()){
   alert("write something")
   return // exit the function if input is empty
 }
+
     todoDisplay.innerHTML += `
         <div class="list_item">
             <div>
-                <p class="para">${inputValue}</p>
+        
+           <input class="InputAndPara" type="text"  value="${inputValue}" readonly maxlength="26" >
             </div>
             <div>
                 <button class="edit_btn">Edit</button>
@@ -217,45 +220,26 @@ if (!inputValue.trim()){
     input.value = ""; // Clear input after adding a todo
 };
 
+let edit = false
 let handleEdit = (e) => {
-
-  // const listItem = e.target.parentElement.parentElement;
-  // console.log(listItem)
-  //   const para = listItem.querySelector(".para");
-  //   console.log(para)
-
-  //   let newValue = prompt("Enter new value:", para.textContent);
-
-  //   if (newValue !== null && newValue.trim() !== "") {
-  //       para.textContent = newValue.trim();
-  //   }
-  
-  //   console.log("Edit button clicked");
-//
-
-// const listItem = e.target.parentElement.parentElement;
-// const para = listItem.querySelector(".para");
-// const editModal = document.getElementById("editModal");
-// const editInput = document.getElementById("editInput");
-// const saveEdit = document.getElementById("saveEdit");
-
-// editInput.value = para.textContent;
-// editModal.style.display = "block";
-
-// saveEdit.addEventListener("click", () => {
-//     const newValue = editInput.value.trim();
-//     if (newValue !== "") {
-//           para.textContent = newValue; //for p
-//         editModal.style.display = "none";
-//     } else {
-//         alert("Value cannot be empty");
-//     }
-// });
-
-
-
-
-
+if(edit){
+  e.target.parentNode.querySelector(".edit_btn").innerHTML = "Edit"
+  let list_item = e.target.parentNode.parentNode
+  list_item.querySelector(".InputAndPara").readOnly = true;
+  list_item.querySelector(".InputAndPara").style.outlineStyle = "none";
+  list_item.querySelector(".InputAndPara").style.outlineColor = "none";
+  list_item.querySelector(".InputAndPara").blur(); 
+  edit = false
+}
+else{
+  e.target.parentNode.querySelector(".edit_btn").innerHTML = "Save"
+  let list_item = e.target.parentNode.parentNode
+list_item.querySelector(".InputAndPara").readOnly = false;
+list_item.querySelector(".InputAndPara").style.outlineStyle = "dotted"; // Use "solid" or other valid values
+list_item.querySelector(".InputAndPara").style.outlineColor = "black";
+list_item.querySelector(".InputAndPara").focus(); 
+edit = true
+}
 };
 
 let handleDelete = (e) => {

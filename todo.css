@@ -108,13 +108,23 @@ button {
     border-radius: 5px;
     box-shadow: rgba(132, 132, 132, 0.2) 0px 2px 8px 0px;
   }
-  .list_item div:first-child {
-    width: 70%;
-    padding: 0 20px;
+  .InputAndPara {
+    width: 100%;
+    padding-inline:   20px;
+    padding-block: 5px;
     font-size: 1.5rem;
     display: flex;
     gap: 15px;
     text-transform: capitalize;
+  
+    border: none;
+
+    outline: none;
+    outline-color: black;
+/* outline-offset: 5px;
+outline-style: dotted;
+outline-color: black; */
+
   }
   
   .edit_btn,

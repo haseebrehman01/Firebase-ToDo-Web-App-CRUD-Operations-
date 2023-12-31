@@ -178,102 +178,293 @@
 
 
 //my js 
+import{  db,collection,addDoc,doc,onSnapshot,query,serverTimestamp,orderBy,getDocs,deleteDoc,updateDoc, } from "./firebase.js"
+
+// JavaScript code for the Todo app
 let input = document.querySelector("#input");
 let addItem_btn = document.querySelector("#addItem_btn");
 let deleteAll = document.getElementById("deleteAll");
 let todoDisplay = document.querySelector("#todoDisplay");
-let list_item ;
 let inputValue;
-let number = 0
-let todoAdd = (e) => {
-    e.preventDefault();
-   inputValue = input.value;
-if (!inputValue.trim()){
-  alert("write something")
-  return // exit the function if input is empty
+let edit = false;
+
+
+//getRealTimeDataFromFirebase
+let getData = async ()=>{
+  const gettodos = collection(db, "Todos");
+const unsubscribe = onSnapshot(gettodos, (snapshot) => {
+  snapshot.docChanges().forEach((getTodo) => {
+ console.log(getTodo)
+if(getTodo.type === "removed"){
+var todoRemoveFromUI = document.getElementById(getTodo.doc.id)
+if(todoRemoveFromUI){  
+  todoRemoveFromUI.remove()  //yeh remove all mai bhand marta toh esi lya if lagaya
+
 }
+// dtodo.innerHTML = ""
 
-    todoDisplay.innerHTML += `
-        <div class="list_item">
-            <div>
-        
-           <input class="InputAndPara" type="text"  value="${inputValue}" readonly maxlength="26" >
-            </div>
-            <div>
-                <button class="edit_btn">Edit</button>
-                <button class="del_btn">Delete</button>
-            </div>
-        </div>
-    `;
-    // Add event listeners for Edit and Delete buttons
-    let editBtns = document.querySelectorAll(".edit_btn");
-    let deleteBtns = document.querySelectorAll(".del_btn");
-
-    editBtns.forEach((editBtn) => {
-        editBtn.addEventListener("click", handleEdit);
-    });
-
-    deleteBtns.forEach((deleteBtn) => {
-        deleteBtn.addEventListener("click", handleDelete);
-    });
-
-    input.value = ""; // Clear input after adding a todo
-};
-
-let edit = false
-let handleEdit = (e) => {
-if(edit){
-  e.target.parentNode.querySelector(".edit_btn").innerHTML = "Edit"
-  let list_item = e.target.parentNode.parentNode
-  list_item.querySelector(".InputAndPara").readOnly = true;
-  list_item.querySelector(".InputAndPara").style.outlineStyle = "none";
-  list_item.querySelector(".InputAndPara").style.outlineColor = "none";
-  list_item.querySelector(".InputAndPara").blur(); 
-  edit = false
-}
-else{
-  e.target.parentNode.querySelector(".edit_btn").innerHTML = "Save"
-  let list_item = e.target.parentNode.parentNode
-list_item.querySelector(".InputAndPara").readOnly = false;
-list_item.querySelector(".InputAndPara").style.outlineStyle = "dotted"; // Use "solid" or other valid values
-list_item.querySelector(".InputAndPara").style.outlineColor = "black";
-list_item.querySelector(".InputAndPara").focus(); 
-edit = true
-}
-};
-
-let handleDelete = (e) => {
-
- let confirmDelete =  confirm("are you sure?")
-if (confirmDelete){
-  const listItem = e.target.parentElement.parentElement;
-  // Check if listItem is found
-  if (listItem) {
-      // Remove the listItem from the DOM
-      listItem.innerHTML = ""//for text
-      listItem.classList = "" //for ui
-  // or
-      // listItem.remove()  
-  }
+}else if(getTodo.type === "added"){
+  todoDisplay.innerHTML += `
+  <div class="list_item" id="${getTodo.doc.id}">
+  <div>
+                  <!-- Input field displaying the todo text -->
+                  <input class="InputAndPara" type="text" value="${getTodo.doc.data().todosValues}" readonly maxlength="26">
+              </div>
+              <div>
+                  <!-- Edit and Delete buttons -->
+                  <button class="edit_btn" onclick='handleEdit(event, "${getTodo.doc.id}")'>Edit</button>
+                  <button class="del_btn" onclick='handleDelete("${getTodo.doc.id}")'>Delete</button>
+                  </div>
+          </div>
+      `;
+  
+  
+  // // Add event listeners for Edit and Delete buttons
+  //     let editBtns = document.querySelectorAll(".edit_btn");
+  //     let deleteBtns = document.querySelectorAll(".del_btn");
+  
+  //     editBtns.forEach((editBtn) => {
+  //         editBtn.addEventListener("click", handleEdit);
+  //     });
+  
+  //     deleteBtns.forEach((deleteBtn) => {
+  //       // Pass getTodo.doc.id to the handleDelete function
+  //       deleteBtn.addEventListener("click", () => handleDelete(getTodo.doc.id));
+  //     });
+  
+  
+      input.value = "";
+  
 }
 
 
-};
-
-deleteAll.addEventListener("click", (e) => {
-  e.preventDefault();
-
-  if (todoDisplay.innerHTML.trim() === "") {
-    alert("No todos to delete");
-  } else {
-    let confirmed = confirm("Are you sure you want to delete all todos?");
-    if (confirmed) {
-      todoDisplay.innerHTML = "";
-    }
-  }
+  });
 });
+}
 
+getData()
+
+
+
+
+// Function to add a new todo
+let todoAdd =   async (e)  => {
+    e.preventDefault();
+    inputValue = input.value;
+
+    // Check if input is empty
+    if (!inputValue.trim()) {
+        alert("Write something");
+        return; // Exit the function if input is empty
+    }
+
+//firebase add doc
+  try {
+    const docRef = await addDoc(collection(db, "Todos"), {
+      todosValues:inputValue
+
+    });
+    console.log("Todo succesfully add", docRef.id);
+  } catch (e) {
+    console.error("Error adding document: ", e);
+  }
+
+};
 addItem_btn.addEventListener("click", todoAdd);
 
 
+// Function to handle the Edit button
+let handleEdit = async (event, todosid) => {
+    // Check if edit mode is already active
+    if (edit) {
+let InputUpdatedValue = event.target.parentNode.parentNode.querySelector("div > input").value
+  const todoRef = doc(db, "Todos", todosid);
+await updateDoc(todoRef, {
+  todosValues: InputUpdatedValue
+});
+        // Change the button text back to "Edit"
+        event.target.parentNode.querySelector(".edit_btn").innerHTML = "Edit"
+
+        // Get the parent list item
+        let list_item = event.target.parentNode.parentNode;
+
+        // Set the input field to read-only
+        list_item.querySelector(".InputAndPara").readOnly = true;
+
+        // Remove the outline styles
+        list_item.querySelector(".InputAndPara").style.outlineStyle = "none";
+        list_item.querySelector(".InputAndPara").style.outlineColor = "none";
+
+        // Remove focus from the input field
+        list_item.querySelector(".InputAndPara").blur();
+
+        // Set edit mode to false
+        edit = false;
+    } else {
+      console.log()
+        // Change the button text to "Save"
+        event.target.parentNode.querySelector(".edit_btn").innerHTML = "Save";
+
+        // Get the parent list item
+        let list_item = event.target.parentNode.parentNode;
+
+        // Set the input field to editable
+        list_item.querySelector(".InputAndPara").readOnly = false;
+
+        // Add outline styles
+        list_item.querySelector(".InputAndPara").style.outlineStyle = "dotted";
+        list_item.querySelector(".InputAndPara").style.outlineColor = "black";
+
+        // Set focus to the input field
+        list_item.querySelector(".InputAndPara").focus();
+
+        // Set edit mode to true
+        edit = true;
+    }
+};
+
+
+
+
+
+
+
+
+// Function to handle the Delete button
+let handleDelete = async (todosid) => {
+  try {
+    let confirmDelete = confirm("Are you sure ?");
+    if (confirmDelete) {
+      await deleteDoc(doc(db, "Todos", todosid));
+      console.log("Todo deleted:", todosid);
+    //  var list_item = todoDisplay.querySelector(".list_item")
+
+
+      // Remove the corresponding todo from the DOM
+      // const todoItem = todoDisplay.querySelector(`.list_item[data-doc-id="${todosid}"]`);
+      // if (todoItem) {
+      //   todoItem.remove();
+      // } 
+    }
+  } catch (e) {
+    console.error(e);
+  }
+;
+
+
+
+//     // Confirm if the user wants to delete the todo
+//     let confirmDelete = confirm("Are you sure?");
+//     if (confirmDelete) {
+//         // Get the parent list item
+//         const listItem = e.target.parentNode;
+// console.log(listItem)
+//         // Check if listItem is found
+//         // if (listItem) {
+//         //     // Remove the listItem from the DOM
+//         //     listItem.innerHTML = ""; // Clear the content for text
+//         //     listItem.classList = ""; // Clear the class for UI
+//         //     // Alternatively, use listItem.remove() to remove the entire listItem
+//         // }
+//     }
+
+
+
+
+
+
+
+
+
+
+
+};
+
+
+
+// // Event listener for the Delete All button
+// deleteAll.addEventListener("click", (e) => {
+//     e.preventDefault();
+
+
+
+// console.log("ali")
+
+
+
+
+
+
+
+
+
+
+
+//     // // Check if there are no todos to delete
+//     // if (todoDisplay.innerHTML.trim() === "") {
+//     //     alert("No todos to delete");
+//     // } else {
+//     //     // Confirm if the user wants to delete all todos
+//     //     let confirmed = confirm("Are you sure you want to delete all todos?");
+//     //     if (confirmed) {
+//     //         // Clear the content of the todoDisplay area
+//     //         todoDisplay.innerHTML = "";
+//     //     }
+//     // }
+// });
+
+
+let handleDeleteAll = async (e) => {
+  e.preventDefault()
+  try {
+    let confirmDeleteAll = confirm("Are you sure you want to delete all todos?");
+    if (confirmDeleteAll) {
+      // Delete all documents from the "Todos" collection
+      const todosCollection = collection(db, "Todos");//Todos
+      // console.log("todosCollection",todosCollection) 
+      const snapshot = await getDocs(todosCollection);
+      console.log("snapshot",snapshot) //snapshot (jaha sara data hota)
+      snapshot.forEach(async (doc) => {
+        // console.log("doc",doc)
+        
+        // console.log("doc.ref",doc.ref) //todo ids
+
+        await deleteDoc(doc.ref);
+      });
+
+      // Clear the display area in the DOM
+      todoDisplay.innerHTML = "";
+      console.log("All todos deleted successfully");
+    }
+  } catch (e) {
+    console.error("Error deleting all todos:", e);
+  }
+};
+
+// Event listener for the Delete All button
+deleteAll.addEventListener("click", handleDeleteAll);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+window.handleDelete = handleDelete;
+window.handleEdit = handleEdit;
 

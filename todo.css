@@ -69,6 +69,7 @@ button {
     display: flex;
     align-items: center;
     justify-content: space-evenly;
+    flex-wrap: wrap;
   }
   #input {
     width: 50%;
@@ -138,6 +139,7 @@ outline-color: black; */
     font-weight: 600;
     background: transparent;
     border: 1px solid;
+    flex-wrap: wrap;
   }
   
   /* lodaer CSS */
@@ -192,7 +194,13 @@ outline-color: black; */
         200px 0 rgba(255, 255, 255, 0), 200px 0 rgba(255, 255, 255, 0);
     }
   } */
+  /* @media screen and (max-width: 768px) {} */
+  @media screen and (max-width: 429px) {  #deleteAll{
+      margin-top: 10px;
+    }}
   @media screen and (max-width: 425px) {
+
+  
     .container label {
       font-size: 1.8rem;
     }
